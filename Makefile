@@ -4,6 +4,6 @@ all:
 	nasm -f elf64 ./src/boot.asm -o ./build/boot
 	cp -r ./src/isofiles ./build
 	cd ./build && $(ld) --nmagic -o ./isofiles/boot/kernel.bin -T ../src/linker.ld multiboot_header boot
-	cd ./build && grub-mkrescue --verbose isofiles -o os.iso
+	grub-mkrescue ./build/isofiles -o minux.iso
 clean:
 	rm -rf ./build/*
