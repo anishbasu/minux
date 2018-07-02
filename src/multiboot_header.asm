@@ -1,10 +1,14 @@
 section .multiboot_header
+
+MAGIC equ 0xE85250D6
+ARCH equ 0x0
+
 header_start:
-    dd 0xE85250D6 ;magic number
-    dd 0          ;arch: Protected mode i386
+    dd MAGIC ;magic number
+    dd ARCH         ;arch: Protected mode i386
     dd header_end - header_start
     ;checksum
-    dd 0x100000000 - (0xE85250D6 + 0 + (header_end - header_start))
+    dd (1 << 32) - (MAGIC + ARCH + (header_end - header_start))
 
     dw 0 ; type
     dw 0 ; flags
