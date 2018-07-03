@@ -1,4 +1,7 @@
 #include "vga.h"
+#include "../util/io.h"
+#include "../util/hex.h"
+
 /* fb_get_pos:
  * Get the framebuffer memory positions
  * @param x The x coordinate.
@@ -47,7 +50,37 @@ void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
 void fb_clear_buffer(unsigned char bg) {
     for(int y = 0; y < VGA_SCREEN_HEIGHT; y++) {
         for(int x = 0; x < VGA_SCREEN_WIDTH; x++) {
-            fb_write_cell(fb_get_pos(x,y), ' ', VGA_BLACK, bg);
+            fb_write_cell(fb_get_pos(x,y), ' ', VGA_DARK_GRAY, bg);
         }
     }
+}
+
+/* fb_move_cursor
+ * Moves the cursor to a specified position.
+ * @param x The x position
+ * @param y The y position
+ */
+void fb_move_cursor(int x, int y) {
+    unsigned short pos = (unsigned short) fb_get_pos(x, y);
+    outb(VGA_COMMAND_PORT, VGA_HI_BYTE_COM);
+    outb(VGA_DATA_PORT, (unsigned char) ((pos >> 8) & 0xFF));
+    outb(VGA_COMMAND_PORT, VGA_LO_BYTE_COM);
+    outb(VGA_DATA_PORT, (unsigned char) (pos & 0xFF));
+}
+
+/* fb_move_cursor
+ * Disables the cursor
+ */
+void fb_disable_cursor() {
+    outb(VGA_COMMAND_PORT, 0xA);
+    outb(VGA_DATA_PORT, 0x20);
+}
+
+void fb_enable_cursor(unsigned char cursor_start, unsigned char cursor_end)
+{
+	outb(VGA_COMMAND_PORT, 0x0A);
+	outb(VGA_DATA_PORT, (inb(0x3D5) & 0xC0) | cursor_start);
+ 
+	outb(VGA_COMMAND_PORT, 0x0B);
+	outb(VGA_DATA_PORT, (inb(0x3E0) & 0xE0) | cursor_end);
 }

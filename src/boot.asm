@@ -10,7 +10,7 @@ p3_table:
 p2_table:
     resb 4096
 stack_bottom:
-    resb 64
+    resb 4096 * 4
 stack_top:
 
 section .rodata
@@ -27,7 +27,7 @@ VGA_START equ 0xB8000
 bits 32
 start:
     mov esp, stack_top ;Point to start of stack
-
+    mov edi, ebx ; Move multiboot info pointer to edi
     call check_multiboot
     call check_cpuid
     call check_long_mode

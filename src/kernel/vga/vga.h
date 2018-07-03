@@ -19,9 +19,16 @@
 #define VGA_WHITE         15
 #define VGA_SCREEN_WIDTH  80
 #define VGA_SCREEN_HEIGHT 25
+#define VGA_COMMAND_PORT  ((unsigned short)0x3D4)
+#define VGA_DATA_PORT     ((unsigned short)0x3D5)
+#define VGA_HI_BYTE_COM   ((unsigned char)0x0E)
+#define VGA_LO_BYTE_COM   ((unsigned char)0x0F)
 void fb_clear_buffer(unsigned char bg);
 void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg);
 void fb_write_string(int x, int y, char* string, unsigned char fg, unsigned char bg);
 int  fb_get_pos(int x, int y);
+void fb_move_cursor(int x, int y);
+void fb_disable_cursor();
+void fb_enable_cursor(unsigned char cursor_start, unsigned char cursor_end);
 #endif
 
