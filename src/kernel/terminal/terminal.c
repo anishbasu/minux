@@ -1,7 +1,8 @@
 #include <vga/vga.h>
 #include <terminal/terminal.h>
 
-struct cursor_t cursor;
+cursor_t cursor;
+
 void init_term() {
     cursor.pos_x = 0;
     cursor.pos_y = 0;

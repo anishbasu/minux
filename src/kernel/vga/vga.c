@@ -1,6 +1,6 @@
-#include "vga.h"
-#include "../util/io.h"
-#include "../util/hex.h"
+#include <vga/vga.h>
+#include <util/io.h>
+#include <util/hex.h>
 
 /* fb_get_pos:
  * Get the framebuffer memory positions
@@ -63,9 +63,9 @@ void fb_clear_buffer(unsigned char bg) {
 void fb_move_cursor(int x, int y) {
     unsigned short pos = (unsigned short) fb_get_pos(x, y);
     outb(VGA_COMMAND_PORT, VGA_HI_BYTE_COM);
-    outb(VGA_DATA_PORT, (unsigned char) ((pos >> 8) & 0xFF));
+    outb(VGA_DATA_PORT, (unsigned char) ((pos >> 8) & 0x00FF));
     outb(VGA_COMMAND_PORT, VGA_LO_BYTE_COM);
-    outb(VGA_DATA_PORT, (unsigned char) (pos & 0xFF));
+    outb(VGA_DATA_PORT, (unsigned char) (pos & 0x00FF));
 }
 
 /* fb_move_cursor

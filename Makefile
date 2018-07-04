@@ -1,5 +1,5 @@
 ld := ~/opt/cross/bin/x86_64-elf-ld
-cflags := -nostartfiles -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nodefaultlibs -Wall -Wextra -Werror -m64 -c
+cflags := -nostdlib -nostdinc -fno-stack-protector -Wall -Wextra -Werror -Isrc/include -m64 -s -c
 
 build_path := build
 src_path := src

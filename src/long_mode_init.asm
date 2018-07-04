@@ -9,7 +9,8 @@ long_mode_start:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    push rdi
+    xor rbp, rbp
+    push rbp
     call kmain
     pop rdi
     hlt
