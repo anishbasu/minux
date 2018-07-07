@@ -35,7 +35,7 @@ start:
     call set_up_page_tables
     call enable_paging
     ;Load GDT
-    lgdt [gdt64.pointer]
+    lgdt [gdt64.pointer] ;Need to add data section to gdt
     jmp gdt64.code:long_mode_start ; Switch to 64 bit code in long_mode_init
     hlt
 

@@ -1,6 +1,5 @@
 
 #include <vga/vga.h>
-#include <util/hex.h>
 #include <util/multiboot.h>
 #include <std/types.h>
 #include <terminal/terminal.h>
