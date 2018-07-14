@@ -7,7 +7,7 @@ We set up the GRUB configuration file as follows:
 
 **isofiles/boot/grub/grub.cfg**
 
-```
+```assembly
 set timeout=0
 set default=0
 
@@ -29,7 +29,7 @@ The GRUB bootloader finds our kernel and checks for the header to verify whether
 
 **asm/multiboot_header.asm**
 
-```
+```assembly
 section .multiboot_header
 
 MAGIC equ 0xE85250D6
@@ -76,7 +76,7 @@ For the CPU to switch to long mode, we need to map the Page Tables to switch to 
 
 **asm/boot.asm**
 
-```
+```assembly
 align 4096
 p4_table:
     resb 4096
@@ -93,7 +93,7 @@ We set each level of page tables up by first setting the flags in the head of ea
 
 **asm/boot.asm**
 
-```
+```assembly
 set_up_page_tables:
     ; map first P4 entry to P3 table
     mov eax, p3_table
@@ -126,7 +126,7 @@ Finally, we set the paging flag in the CR0 register to enable paging.
 
 **asm/boot.asm**
 
-```
+```assembly
 enable_paging:
     ; load P4 to cr3 register (cpu uses this to access the P4 table)
     mov eax, p4_table
@@ -157,14 +157,15 @@ Now that we have Paging set up, we can load the Global Descriptor Table and jump
 
 **asm/boot.asm**
 
-```
+```assembly
 .code: equ $ - gdt64
     dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53) ; Executable, Code, Present and 64 bit flags set
 .data: equ $ - gdt64
     dq (1<<44) | (1<<47) ; Data and Present Flags Set
 ```
 
-###Possible Flags:
+### Possible Flags:
+
 (https://os.phil-opp.com/entering-longmode/)
 
 |Bit |Name      |Description      |
@@ -182,12 +183,12 @@ The **code** section is stored in the **cs** register and the data section is st
 
 Now we load the GDT by using the following instruction:
 
-```
+```assembly
 lgdt [gdt64.pointer]
 ```
 
 Then we switch to long mode by calling long-mode code through the code section as follows:
 
-```
+```assembly
 jmp gdt64.code:long_mode_start
 ```

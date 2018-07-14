@@ -2,12 +2,11 @@
 #include <terminal/terminal.h>
 
 cursor_t cursor;
-
 void init_term() {
     cursor.pos_x = 0;
     cursor.pos_y = 0;
-    cursor.width = 0;
-    cursor.height = 0;
+    cursor.width = 80;
+    cursor.height = 25;
 }
 void print(char* string) {
     int i = 0;
@@ -28,3 +27,5 @@ void print(char* string) {
     }
     fb_move_cursor(cursor.pos_x, cursor.pos_y);
 }
+
+//void kprintf(char* string, )

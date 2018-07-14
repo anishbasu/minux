@@ -1,9 +1,9 @@
 #ifndef REGISTERS_H
 #define REGISTERS_H
 #include <std/types.h>
-inline uint16_t cs() {
+static inline uint16_t cs() {
     uint16_t cs;
-    asm volatile ("mov %0, %%cs" : "=r"(cs));
+    asm volatile ("mov %%cs, %0" : "=r"(cs));
     return cs;
 }
 #endif

@@ -32,7 +32,7 @@ This fact essential to keep in mind when writing C functions that inntermingle w
 ## Compiling C
 We need to use a couple of flags in gcc to compile our C files into standalone object files to link later.
 
-```
+```bash
 -nostdlib -nostdinc -fno-stack-protector -Wall -Wextra -Werror -Isrc/include -m64 -s -c
 ```
 
@@ -41,7 +41,7 @@ We have a simple main function, called kmain in our kmain.c file:
 
 **kmain.c**
 
-```
+```assembly
 void kmain() {
     asm("hlt");
 }
@@ -53,6 +53,6 @@ We can call this function from the asm as follows:
 
 **asm/long_mode_init.asm**
 
-```
+```assembly
 call kmain
 ```

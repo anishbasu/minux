@@ -18,8 +18,10 @@ gdt64:
     dq 0 ; zero entry
 .code: equ $ - gdt64
     dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53) ; Executable, Code, Present and 64 bit flags set
-.pointer
-    dw $ - gdt64 -1
+.data: equ $ - gdt64
+    dq (1<<44) | (1<<47) ; Data and Present Flags Set
+.pointer:
+    dw $ - gdt64 - 1
     dq gdt64
 
 section .text
@@ -27,7 +29,7 @@ VGA_START equ 0xB8000
 bits 32
 start:
     mov esp, stack_top ;Point to start of stack
-    mov edi, ebx ; Move multiboot info pointer to edi
+    mov edi, ebx ; Move multiboot info pointer to edi (First arg in System V x68-64 ABI)
     call check_multiboot
     call check_cpuid
     call check_long_mode
@@ -151,7 +153,6 @@ set_up_page_tables:
     ret
 
 enable_paging:
-    mov dword [VGA_START], 0x2f4b2f4f
     ; load P4 to cr3 register (cpu uses this to access the P4 table)
     mov eax, p4_table
     mov cr3, eax

@@ -2,6 +2,8 @@
 #include <std/types.h>
 #include <util/io.h>
 #include <cpu/register.h>
+#include <terminal/terminal.h>
+#include <std/string.h>
 //Graciously taken from: https://github.com/tmathmeyer/sos/blob/master/src/pic/interrupts.c
 // and https://wiki.osdev.org/Interrupt_Descriptor_Table
 // and http://www.flingos.co.uk/docs/reference/IRQs/
@@ -9,7 +11,7 @@
 IDTDesc_t IDT[NUM_INTERRUPTS];
 
 //Store the registered handlers
-void (* handlers[NUM_INTERRUPTS]) (struct InterruptFrame_t *);
+void (* handlers[NUM_INTERRUPTS]) (struct InterruptFrame *);
 
 //Put all the function pointers in a label for init
 void (* IRQS[NUM_INTERRUPTS]) (void) = {
@@ -19,7 +21,24 @@ void (* IRQS[NUM_INTERRUPTS]) (void) = {
     &irq_24,&irq_25,&irq_26,&irq_27,&irq_28,&irq_29,&irq_30,&irq_31,
     &irq_32,&irq_33
 };
+//Router that handles all interrupts
+//TODO: break up into Top and Bottom Half
+void interrupt_router(uint64_t id, uint64_t stack) {
+    if (handlers[id]) { //If a handler is available, call it
+        handlers[id](get_frame(stack, id));
+        //Additional Error Handling code needed
+    } // Dump stack else (NEED PANIC FUNCTION)
 
+    //Send End of Interrupt (EOI) Sugnal
+    if (id < IRQ_BASE + 16) {
+        //Slave
+        if (id >= IRQ_BASE + 8 )
+            outb(PIC_SLAVE, PIC_EOI);
+        //Master
+        if (id >= IRQ_BASE)
+            outb(PIC_MASTER, PIC_EOI);
+    }
+}
 void load_IDT(){
     //Notify the PIC that we're adding IDT Entries
     //INIT command ICW1 + ICW4
@@ -41,17 +60,17 @@ void load_IDT(){
     outb(PIC_MASTER_DATA, 0x00);
     outb(PIC_SLAVE_DATA,  0x00);
 
-    for(size_t i; i < NUM_INTERRUPTS; i++) {
-        IDT[i] = create_IDTDesc(cs(), (uintptr_t) IRQS[i]);
+    uint16_t code_seg = cs();
+    for(size_t i = 0; i < NUM_INTERRUPTS; i++) {
+        IDT[i] = create_IDTDesc(code_seg, (uintptr_t) IRQS[i]);
     }
     //Set the IDT Entries
     IDTPointer_t pointer = {
         .base = IDT,
         .limit = sizeof(IDT) - 1
     }; 
-    asm("lidt %0" : : "m" (pointer));
-
-    asm("sti"); //Set the IDT Entry
+    asm("lidt %0" : : "m" (pointer)); // Load the IDT
+    asm("sti");//Set the IDT Entry
 }
 
 IDTDesc_t create_IDTDesc(uint16_t gdt_selector, uintptr_t fn_ptr) {
@@ -72,7 +91,7 @@ IDTDesc_t create_IDTDesc(uint16_t gdt_selector, uintptr_t fn_ptr) {
     desc.reserved = 0;
     return desc;
 }
-void set_interrupt_handler(int handler_id, void (* func) (struct InterruptFrame)) {
+void set_interrupt_handler(int handler_id, void (* func) (struct InterruptFrame *)) {
     handlers[handler_id] = func;
 }
 

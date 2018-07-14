@@ -29,7 +29,6 @@ typedef struct IDTDesc {
     uint16_t offset_l; // 0 .. 15 offset bits
     uint16_t selector; // a code segment selector in GDT or LDT
     IDTDescOpts_t opts;     // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
-    uint8_t  type_attr;// type and attributes
     uint16_t offset_m; // 16 .. 31 offset bits
     uint32_t offset_h; // 32 .. 63 offset bits
     uint32_t reserved; // reserved
@@ -41,13 +40,13 @@ typedef struct IDTDesc {
  */
 typedef struct IDTPointer {
     uint16_t limit;
-    uintptr_t base;
+    void* base;
 } __attribute__((packed)) IDTPointer_t;
 
 /**
  * Actual Interrupt
  */
-typedef struct InterruptFrame{
+struct InterruptFrame {
    uintptr_t instr_ptr, code_segment;
    uint64_t  cpu_flags;
    uintptr_t stack_ptr;
@@ -58,9 +57,10 @@ typedef struct InterruptFrame{
 //Defined in idt.c
 void load_IDT();
 IDTDesc_t create_IDTDesc(uint16_t gdt_selector, uintptr_t fn_ptr);
-void set_interrupt_handler(int handler_id, void (* func) (struct InterruptFrame));
+void set_interrupt_handler(int handler_id, void (* func) (struct InterruptFrame *));
 uint64_t get_error_code(struct InterruptFrame *);
 struct InterruptFrame* get_frame(uintptr_t frame_ptr, uint64_t id);
+void interrupt_router(uint64_t id, uint64_t stack);
 //Defined in src/asm/idt.asm
 extern void irq_0(void);
 extern void irq_1(void);

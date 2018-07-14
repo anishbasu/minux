@@ -1,17 +1,18 @@
-extern handle_interrupt
-
+extern interrupt_router
+extern gdt64
 section .text
 bits 64
 ;IRQ Macros
 %macro irq_handle_interrupt 1
-    global irq_%1
-    irq_%1:
+    global irq_%1 ;global so that we can access it from C
+    irq_%1: ;Create a function for each IRQ line
         cli
-        mov rdi, dword %1
+        mov rdi, dword %1 ;Send ID
         jmp _irq_middleware_bounce
 %endmacro
 
 _irq_middleware_bounce:
+    cli
     push rdi
     push rsi
     push rdx
@@ -21,8 +22,9 @@ _irq_middleware_bounce:
     push  r9
     push r10
     push r11
-    mov rsi, rsp
-    call handle_interrupt
+    ; Interrupt ID has already been sent
+    mov rsi, rsp ;Send interrupt frame
+    call interrupt_router
     pop  r11
     pop  r10
     pop   r9
@@ -34,7 +36,7 @@ _irq_middleware_bounce:
     pop  rdi
     sti
     iretq
-    
+
 irq_handle_interrupt 0
 irq_handle_interrupt 1
 irq_handle_interrupt 2

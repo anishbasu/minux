@@ -1,6 +1,6 @@
 ld := ~/opt/cross/bin/x86_64-elf-ld
-cflags := -nostdlib -nostdinc -fno-stack-protector -Wall -Wextra -Werror -Isrc/include -m64 -s -c
-
+testflags = -Wno-unused-parameter -Wno-unused-variable -Wno-div-by-zero
+cflags := -nostdlib -nostdinc -fno-stack-protector -Wall -Wextra -Werror $(testflags) -Isrc/include -m64 -s -c
 build_path := build
 src_path := src
 

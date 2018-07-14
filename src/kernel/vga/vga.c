@@ -1,6 +1,5 @@
 #include <vga/vga.h>
 #include <util/io.h>
-#include <util/hex.h>
 #include <std/types.h>
 
 /* fb_get_pos:

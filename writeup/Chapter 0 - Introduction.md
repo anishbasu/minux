@@ -28,14 +28,14 @@ If you have all of these programs you can skip this part.
 #### QEMU
 Installing via Homebrew:
 
-```
+```bash
 brew install qemu
 ```
 
 #### Download the Minimal Arch Linux ISO
 The Arch Linux ISO can be downloaded from the official site [here](https://www.archlinux.org/download/). Once you have downloaded the ISO image, run:
 
-```
+```bash
 qemu-img create -f qcow2 devmachine.qcow2 8G
 ```
 
@@ -43,7 +43,7 @@ Run the Virtual Machine as follows:
 
 **./startdev.sh**
 
-```
+```bash
 qemu-system-x86_64 devmachine.qcow2 -m 1G -net user,hostfwd=tcp::2200-:22 -net nic -cdrom <<PUT ISO HERE>>
 ```
 
@@ -67,7 +67,7 @@ Doing so on our dev machine will set up the environment to use this script:
 
 **../dev/build.sh**
 
-```
+```bash
 rm ../minux/minux.iso
 scp -r -P 2200 ../minux localhost:~/
 ssh localhost -p 2200 -t "cd minux && make"
