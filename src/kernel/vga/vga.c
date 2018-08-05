@@ -1,7 +1,7 @@
 #include <vga/vga.h>
 #include <util/io.h>
 #include <std/types.h>
-
+#define memcpy __builtin_memcpy
 /* fb_get_pos:
  * Get the framebuffer memory positions
  * @param x The x coordinate.
@@ -64,11 +64,11 @@ void fb_clear_buffer(uint8_t bg)
  * @param y The y position
  */
 void fb_move_cursor(uint8_t x, uint8_t y) {
-    uint16_t pos = fb_get_pos(x, y);
+    uint16_t pos = fb_get_pos(x, y)/2;
     outb(VGA_COMMAND_PORT, VGA_HI_BYTE_COM);
-    outb(VGA_DATA_PORT, (unsigned char) ((pos >> 8) & 0x00FF));
+    outb(VGA_DATA_PORT, (unsigned char) ((pos >> 8) & 0xFF));
     outb(VGA_COMMAND_PORT, VGA_LO_BYTE_COM);
-    outb(VGA_DATA_PORT, (unsigned char) (pos & 0x00FF));
+    outb(VGA_DATA_PORT, (unsigned char) (pos & 0xFF));
 }
 
 /* fb_move_cursor
@@ -86,4 +86,12 @@ void fb_enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
  
 	outb(VGA_COMMAND_PORT, 0x0B);
 	outb(VGA_DATA_PORT, (inb(0x3E0) & 0xE0) | cursor_end);
+}
+
+void fb_scroll() {
+    //Copy up
+    memcpy((char *)VGA_FB_ADDR, (void *)(VGA_FB_ADDR + (VGA_SCREEN_WIDTH * 2)), (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH * 2);
+    for(int x = 0; x < VGA_SCREEN_WIDTH; x++) {
+        fb_write_cell(fb_get_pos(x, VGA_SCREEN_HEIGHT - 1), ' ', VGA_DARK_GRAY, VGA_BLACK);
+    }
 }

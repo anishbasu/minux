@@ -33,5 +33,6 @@ uint8_t fb_get_pos(uint8_t x, uint8_t y);
 void fb_move_cursor(uint8_t x, uint8_t y);
 void fb_disable_cursor();
 void fb_enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
+void fb_scroll();
 #endif
 

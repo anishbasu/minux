@@ -2,12 +2,14 @@
 #include <std/types.h>
 #include <util/io.h>
 #include <cpu/register.h>
+#include <cpu/spinlock.h>
 #include <terminal/terminal.h>
 #include <std/string.h>
 //Graciously taken from: https://github.com/tmathmeyer/sos/blob/master/src/pic/interrupts.c
 // and https://wiki.osdev.org/Interrupt_Descriptor_Table
 // and http://www.flingos.co.uk/docs/reference/IRQs/
 
+//Interrupts
 IDTDesc_t IDT[NUM_INTERRUPTS];
 
 //Store the registered handlers
@@ -19,24 +21,32 @@ void (* IRQS[NUM_INTERRUPTS]) (void) = {
     &irq_8, &irq_9, &irq_10,&irq_11,&irq_12,&irq_13,&irq_14,&irq_15,
     &irq_16,&irq_17,&irq_18,&irq_19,&irq_20,&irq_21,&irq_22,&irq_23,
     &irq_24,&irq_25,&irq_26,&irq_27,&irq_28,&irq_29,&irq_30,&irq_31,
-    &irq_32,&irq_33
+    &irq_32,&irq_33,&irq_34,&irq_35,&irq_36,&irq_37,&irq_38,&irq_39,
+    &irq_40,&irq_41,&irq_42,&irq_43,&irq_44,&irq_45,&irq_46,&irq_47,
+    &irq_48,&irq_49,&irq_50,&irq_51,&irq_52,&irq_53,&irq_54,&irq_55,
+    &irq_56,&irq_57,&irq_58,&irq_59,&irq_60,&irq_61,&irq_62,&irq_63,
+    &irq_64
 };
 //Router that handles all interrupts
 //TODO: break up into Top and Bottom Half
+spinlock_t interrupt_lock;
 void interrupt_router(uint64_t id, uint64_t stack) {
-    if (handlers[id]) { //If a handler is available, call it
-        handlers[id](get_frame(stack, id));
-        //Additional Error Handling code needed
-    } // Dump stack else (NEED PANIC FUNCTION)
+    if(try_lock(&interrupt_lock)){
+        if (handlers[id]) { //If a handler is available, call it
+            handlers[id](get_frame(stack, id));
+            //Additional Error Handling code needed
+        } // Dump stack else (NEED PANIC FUNCTION)
 
-    //Send End of Interrupt (EOI) Sugnal
-    if (id < IRQ_BASE + 16) {
-        //Slave
-        if (id >= IRQ_BASE + 8 )
-            outb(PIC_SLAVE, PIC_EOI);
-        //Master
-        if (id >= IRQ_BASE)
-            outb(PIC_MASTER, PIC_EOI);
+        //Send End of Interrupt (EOI) Sugnal
+        if (id < IRQ_BASE + 16) {
+            //Slave
+            if (id >= IRQ_BASE + 8 )
+                outb(PIC_SLAVE, PIC_EOI);
+            //Master
+            if (id >= IRQ_BASE)
+                outb(PIC_MASTER, PIC_EOI);
+        }
+        spin_unlock(&interrupt_lock);
     }
 }
 void load_IDT(){
@@ -56,9 +66,9 @@ void load_IDT(){
     outb(PIC_MASTER_DATA, 0x01); 
     outb(PIC_SLAVE_DATA,  0x01);
 
-    // Mask all IRQs to add the IDT
-    outb(PIC_MASTER_DATA, 0x00);
-    outb(PIC_SLAVE_DATA,  0x00);
+    // Disable all IRQs in IMR (Interrupt Mask Register) to add the IDT
+    outb(PIC_MASTER_DATA, 0xFF);
+    outb(PIC_SLAVE_DATA,  0xFF);
 
     uint16_t code_seg = cs();
     for(size_t i = 0; i < NUM_INTERRUPTS; i++) {
@@ -93,6 +103,37 @@ IDTDesc_t create_IDTDesc(uint16_t gdt_selector, uintptr_t fn_ptr) {
 }
 void set_interrupt_handler(int handler_id, void (* func) (struct InterruptFrame *)) {
     handlers[handler_id] = func;
+}
+
+void disable_irq_line(uint16_t irq_line){
+    irq_line = IRQ_BASE_LINE(irq_line);
+    uint16_t port;
+    if (irq_line < 8) {
+        port = PIC_MASTER_DATA;
+    } else {
+        port = PIC_SLAVE_DATA;
+        irq_line -= 8; // Offset the value for setting the slave only
+    }
+    //Set the flag bit on the mask
+    uint8_t mask = inb(port) | (1 << irq_line);
+    print_num(mask, 16);
+    //Set the flags on the PIC
+    outb(port, mask);
+}
+
+void enable_irq_line(uint16_t irq_line) {
+    irq_line = IRQ_BASE_LINE(irq_line);
+    uint16_t port;
+    if (irq_line < 8) {
+        port = PIC_MASTER_DATA;
+    } else {
+        port = PIC_SLAVE_DATA;
+        irq_line -= 8; // Offset the value for setting the slave only
+    }
+    //Unset the flag bit on the mask
+    uint8_t mask = inb(port) & ~(1 << irq_line); //Set the zero flag on the irq_line-th bit
+    //Set the flags on the PIC
+    outb(port, mask);
 }
 
 struct InterruptFrame* get_frame(uintptr_t frame_ptr, uint64_t id) {

@@ -5,15 +5,12 @@
 #include <terminal/terminal.h>
 #include <cpu/irq.h>
 #include <error/kernel_errors.h>
+#include <irq_handlers/timer.h>
 
 int kmain() {
-    init_term();
-    print("Testing");
-    print("Testing\nTesting");
-    print("Should be on a new line\n");
     load_IDT();
     register_errors();
-    int i = 1/0;
+    init_pit();
     while(1);
     return 0;
 }

@@ -41,7 +41,7 @@ We have a simple main function, called kmain in our kmain.c file:
 
 **kmain.c**
 
-```assembly
+```c
 void kmain() {
     asm("hlt");
 }
