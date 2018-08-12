@@ -2,7 +2,7 @@
 #include <cpu/irq.h>
 #include <terminal/terminal.h>
 #include <irq_handlers/timer.h>
-int tick = 0;
+volatile int tick = 0;
 uint16_t read_pit_count(uint8_t channel) {
     pit_command_t command = { 
         .fields = { 
@@ -34,9 +34,19 @@ void set_pit_phase(int hz) {
 }
 
 void test_func(struct InterruptFrame* frame){
-    kprintf("Tick: %d\n", tick);
+    //kprintf("Tick: %d\n", tick); //REPLACE WITH SCHEDULER
+
+    //print_pos();
     tick++;
 }
+
+void sleep(int sec) {
+    int goal_tick = tick + 20 * sec;
+    while(tick < goal_tick);
+
+    return;
+}
+
 void init_pit() {
     set_pit_phase(20);
     set_interrupt_handler(IRQ_LINE(0), &test_func);

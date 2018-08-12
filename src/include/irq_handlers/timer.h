@@ -32,4 +32,5 @@ uint16_t read_pit_count(uint8_t channel);
 void set_pit_phase(int hz);
 void init_pit();
 void test_func(struct InterruptFrame* frame);
+void sleep(int sec);
 #endif
